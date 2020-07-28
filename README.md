@@ -32,7 +32,31 @@ docker push hank997/cvat_cvat_ui:latest
 docker push hank997/node:lts-alpine
 docker push hank997/nginx:stable-alpine
 ```
+
+## 注意
+ELK下的`components/analytics/logstash/logstash.conf`,不然elasticsearch连接不通
+```
+  if [type] == "client" {
+    elasticsearch {
+      hosts => ["cvat-elasticsearch-svc.cvat.svc.cluster.local:9200"]
+      index => "cvat.client"
+    }
+  } else if [type] == "server" {
+    elasticsearch {
+      hosts => ["cvat-elasticsearch-svc.cvat.svc.cluster.local:9200"]
+      index => "cvat.server"
+    }
+  }
+
+```
+
 下面的步骤还没操作，发起一个job即可
+注意， `setup.py`下的`default`改成`cvat-kibana-svc.cvat.svc.cluster.local`，还有command的改成相对应的地址
+```
+    parser.add_argument('-H', '--host', metavar='HOST', default='kibana',
+        help='host of Kibana instance')
+```
+
 ```
   cvat_kibana_setup:
     container_name: cvat_kibana_setup
