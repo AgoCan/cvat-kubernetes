@@ -34,7 +34,7 @@ docker push hank997/nginx:stable-alpine
 ```
 
 ## 注意
-ELK下的`components/analytics/logstash/logstash.conf`,不然elasticsearch连接不通
+ELK下的`components/analytics/logstash/logstash.conf`,不然elasticsearch连接不通，还有`components/analytics/kibana/kibana.yml` 也需要改一下
 ```
   if [type] == "client" {
     elasticsearch {
