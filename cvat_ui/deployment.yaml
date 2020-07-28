@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvat-ui
+  namespace: cvat
+  labels:
+    name: cvat-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvat-ui
+  template:
+    metadata:
+      labels:
+        app: cvat-ui
+    spec:
+      imagePullSecrets:
+      - name: registry-key
+      volumes:
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+      containers:
+      - name: cvat-ui-container
+        image: hank997/cvat_cvat_ui:latest
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80

@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: proxy-conf
+  namespace: cvat
+data:
+  nginx.conf: |
+    worker_processes 2;
+    events {
+        worker_connections  1024;
+    }
+
+    http {
+        include       mime.types;
+        default_type  application/octet-stream;
+        sendfile      on;
+        keepalive_timeout  65;
+        # For long domain names (e.g. AWS hosts)
+        server_names_hash_bucket_size 128;
+
+        include /etc/nginx/conf.d/*.conf;
+        client_max_body_size 0;
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: proxy-conf-template
+    namespace: cvat
+data:
+  cvat.conf.template: |
+    server {
+        listen       80;
+        server_name  ${CVAT_HOST};
+
+        proxy_pass_header       X-CSRFToken;
+        proxy_set_header        Host $http_host;
+        proxy_pass_header       Set-Cookie;
+
+        location ~* /api/.*|git/.*|tensorflow/.*|auto_annotation/.*|analytics/.*|static/.*|admin|admin/.*|documentation/.*|dextr/.*|reid/.*  {
+            proxy_pass              http://cvat-svc.cvat.svc.cluster.local:8080;
+        }
+
+        # workaround for match location by arguments
+        location = / {
+            error_page 418 = @annotation_ui;
+
+            if ( $query_string ~ "^id=\d+.*" ) { return 418; }
+            proxy_pass              http://cvat-ui-svc.cvat.svc.cluster.local;
+        }
+
+        location / {
+            proxy_pass              http://cvat-ui-svc.cvat.svc.cluster.local;
+        }
+
+        # old annotation ui, will be removed in the future.
+        location @annotation_ui {
+            proxy_pass              http://cvat-svc.cvat.svc.cluster.local:8080;
+        }
+    }

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvat-logstash
+  namespace: cvat
+  labels:
+    name: cvat-logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvat-logstash
+  template:
+    metadata:
+      labels:
+        app: cvat-logstash
+    spec:
+      imagePullSecrets:
+      - name: registry-key
+      volumes:
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+      containers:
+      - name: cvat-logstash-container
+        image: hank997/cvat_logstash:latest
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: DJANGO_LOG_SERVER_HOST
+          value: ""
+        ports:
+        - containerPort: 5000
+        - containerPort: 5044
+        - containerPort: 9600

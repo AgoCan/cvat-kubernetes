@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvat
+  namespace: cvat
+  labels:
+    name: cvat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvat
+  template:
+    metadata:
+      labels:
+        app: cvat
+    spec:
+      imagePullSecrets:
+      - name: registry-key
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: cvat-data
+      - name: keys
+        persistentVolumeClaim:
+          claimName: cvat-keys
+      - name: logs
+        persistentVolumeClaim:
+          claimName: cvat-logs
+      - name: models
+        persistentVolumeClaim:
+          claimName: cvat-models
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+      containers:
+      - name: cvat-container
+        image: hank997/cvat:latest
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: data
+          mountPath: /home/django/data
+        - name: keys
+          mountPath: /home/django/keys
+        - name: logs
+          mountPath: /home/django/logs
+        - name: models
+          mountPath: /home/django/models
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DJANGO_MODWSGI_EXTRA_ARGS
+          value: ""
+        - name: ALLOWED_HOSTS
+          value: "*"
+        - name: CVAT_REDIS_HOST
+          value: "cvat-redis-svc.cvat.svc.cluster.local"
+        - name: CVAT_POSTGRES_HOST
+          value: "cvat-db-svc.cvat.svc.cluster.local"
+        - name: NVIDIA_VISIBLE_DEVICES
+          value: "all"
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: "compute,utility"
+        - name: NVIDIA_REQUIRE_CUDA
+          value: "cuda>=10.0 brand=tesla,driver>=384,driver<385 brand=tesla,driver>=410,driver<411"
+        - name: DJANGO_LOG_SERVER_HOST
+          value: "cvat-logstash-svc.cvat.svc.cluster.local"
+        - name: DJANGO_LOG_SERVER_PORT
+          value: "5000"
+        - name: DJANGO_LOG_VIEWER_HOST
+          value: "cvat-kibana-svc.cvat.svc.cluster.local"
+        - name: DJANGO_LOG_VIEWER_PORT
+          value: "5601"

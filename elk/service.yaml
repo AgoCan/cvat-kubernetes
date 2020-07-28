@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cvat-logstash-svc
+  namespace: cvat
+  labels:
+    name: cvat-logstash-svc
+spec:
+  ports:
+    - port: 5000
+      protocol: TCP
+      targetPort: 5000
+      name: cvat-logstash
+    - port: 5044
+      protocol: TCP
+      targetPort: 5044
+      name: cvat-logstash-5044
+    - port: 9600
+      protocol: TCP
+      targetPort: 9600
+      name: cvat-logstash-9600
+  selector:
+    app: cvat-logstash
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cvat-kibana-svc
+  namespace: cvat
+  labels:
+    name: cvat-kibana-svc
+spec:
+  ports:
+    - port: 5601
+      protocol: TCP
+      targetPort: 5601
+      name: cvat-kibana
+  selector:
+    app: cvat-kibana
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cvat-elasticsearch-svc
+  namespace: cvat
+  labels:
+    name: cvat-elasticsearch-svc
+spec:
+  ports:
+    - port: 9200
+      protocol: TCP
+      targetPort: 9200
+      name: cvat-elasticsearch
+    - port: 9300
+      protocol: TCP
+      targetPort: 9300
+      name: cvat-elasticsearch-9300
+  selector:
+    app: cvat-elasticsearch

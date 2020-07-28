@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvat-kibana
+  namespace: cvat
+  labels:
+    name: cvat-kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvat-kibana
+  template:
+    metadata:
+      labels:
+        app: cvat-kibana
+    spec:
+      imagePullSecrets:
+      - name: registry-key
+      volumes:
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+      containers:
+      - name: cvat-kibana-container
+        image: hank997/cvat_kibana:latest
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5601

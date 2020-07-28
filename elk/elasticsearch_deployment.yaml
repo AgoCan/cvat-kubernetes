@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvat-elasticsearch
+  namespace: cvat
+  labels:
+    name: cvat-elasticsearch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvat-elasticsearch
+  template:
+    metadata:
+      labels:
+        app: cvat-elasticsearch
+    spec:
+      imagePullSecrets:
+      - name: registry-key
+      volumes:
+      - name: cvat-events
+        persistentVolumeClaim:
+          claimName: cvat-events
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+      containers:
+      - name: cvat-elasticsearch-container
+        image: hank997/cvat_elasticsearch:latest
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: cvat-events
+          mountPath: /usr/share/elasticsearch/data
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9300
+        - containerPort: 9200
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: cvat-events
+  namespace: cvat
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

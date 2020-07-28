@@ -1,0 +1,77 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: cvat-db-pvc
+  namespace: cvat
+  annotations:
+    volume.beta.kubernetes.io/storage-class: "managed-nfs-storage"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvat-db
+  namespace: cvat
+  labels:
+    name: cvat-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvat-db
+  template:
+    metadata:
+      labels:
+        app: cvat-db
+    spec:
+      imagePullSecrets:
+      - name: registry-key
+      volumes:
+      - name: db-data
+        persistentVolumeClaim:
+          claimName: cvat-db-pvc
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+      containers:
+      - name: cvat-db-container
+        image: hank997/cvat-postgres:10-alpine
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: db-data
+          mountPath: /var/lib/postgresql/data
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: root
+        - name: POSTGRES_DB
+          value: cvat
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: trust
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cvat-db-svc
+  namespace: cvat
+  labels:
+    name: cvat-db-svc
+spec:
+  ports:
+    - port: 5432
+      protocol: TCP
+      targetPort: 5432
+      name: http2
+  selector:
+    app: cvat-db

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cvat-proxy
+  namespace: cvat
+  labels:
+    name: cvat-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cvat-proxy
+  template:
+    metadata:
+      labels:
+        app: cvat-proxy
+    spec:
+      imagePullSecrets:
+      - name: registry-key
+      volumes:
+      - name: localtime
+        hostPath:
+          path: /etc/localtime
+      - name: proxy-conf
+        configMap:
+          name: proxy-conf
+      - name: proxy-conf-template
+        configMap:
+          name: proxy-conf-template
+      containers:
+      - name: cvat-proxy-container
+        image: hank997/nginx:stable-alpine
+        volumeMounts:
+        - name: localtime
+          mountPath: /etc/localtime
+        - name: proxy-conf
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: proxy-conf-template
+          mountPath: /etc/nginx/conf.d/cvat.conf.template
+          subPath: cvat.conf.template
+        command: ["/bin/sh", "-c", "envsubst '$$CVAT_HOST' < /etc/nginx/conf.d/cvat.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: CVAT_HOST
+          value: localhost
+        ports:
+        - containerPort: 80
