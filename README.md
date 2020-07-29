@@ -56,7 +56,10 @@ ELK下的`components/analytics/logstash/logstash.conf`,不然elasticsearch连接
     parser.add_argument('-H', '--host', metavar='HOST', default='kibana',
         help='host of Kibana instance')
 ```
+下面的步骤可以使用    kubectl cp 把两个文件复制进去，然后 进去里面执行
+`bash wait-for-it.sh cvat-elasticsearch-svc.cvat.svc.cluster.local:9200 -t 0 -- /bin/bash wait-for-it.sh cvat-kibana-svc.cvat.svc.cluster.local:5601 -t 0 -- /usr/bin/python3 kibana/setup.py kibana/export.json`
 
+需要注意的是，如果设置了`http_proxy`和`https_proxy`，进行构建的镜像，并且yaml没把环境变量清空，可能会出现`timeout`的报错，所以执行的时候先 `unset http_proxy;unset https_proxy`
 ```
   cvat_kibana_setup:
     container_name: cvat_kibana_setup
