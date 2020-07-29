@@ -35,3 +35,9 @@ spec:
         - containerPort: 5000
         - containerPort: 5044
         - containerPort: 9600
+        env:
+        # 把代理全部给关闭了
+        - name: http_proxy
+          value: ""
+        - name: https_proxy
+          value: ""

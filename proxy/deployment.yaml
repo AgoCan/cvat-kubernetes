@@ -46,3 +46,9 @@ spec:
           value: localhost
         ports:
         - containerPort: 80
+        env:
+        # 把代理全部给关闭了
+        - name: http_proxy
+          value: ""
+        - name: https_proxy
+          value: ""

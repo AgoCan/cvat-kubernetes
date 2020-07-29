@@ -51,6 +51,11 @@ spec:
         ports:
         - containerPort: 8080
         env:
+        # 把代理全部给关闭了
+        - name: http_proxy
+          value: ""
+        - name: https_proxy
+          value: ""
         - name: DJANGO_MODWSGI_EXTRA_ARGS
           value: ""
         - name: ALLOWED_HOSTS

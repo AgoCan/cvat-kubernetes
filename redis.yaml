@@ -50,6 +50,12 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 6379
+        env:
+        # 把代理全部给关闭了
+        - name: http_proxy
+          value: ""
+        - name: https_proxy
+          value: ""
 
 ---
 
